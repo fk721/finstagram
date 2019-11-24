@@ -1,0 +1,49 @@
+{% include "header.html" %}
+{% include "nav.html" %}
+	<div class="container">
+	
+	{% if photos | length == 0 %}
+	<h3 class="mt-5"> Sorry {{username}}, no posts to show :( </h4>
+	{% else %}
+	<h3 class="mt-5"> Welcome, {{username}} </h3>
+	{% endif %}
+	
+	{% for photo in photos %}
+	<div class="row justify-content-center align-items-center">
+		<div class="card mt-3 mb-2" style="width: 50%;">
+			<img class="card-img-top" src="data:image/png;base64,{{ photo.photoBlob.decode('ascii') }}" alt="Card image cap">
+			<div class="card-body">
+				<h5 class="card-title"> <strong> PhotoID: </strong> {{photo.photoID}} <br> <strong> Posted By: </strong>{{photo.photoPoster}} <br> <strong> On: </strong> {{photo.postingdate}} </h5>
+				<p class="card-text"> <strong> Caption: </strong>{{photo.caption}} </p>
+
+				<!-- Button trigger modal -->
+				<button type="button" class="btn btn-dark" data-toggle="modal" data-target="#modal-{{photo.photoID}}" onclick="getInfo('{{photo.photoID}}')"> More Info</button>
+				
+				<!-- Modal -->
+				<div class="modal fade" id="modal-{{photo.photoID}}" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+				<div class="modal-dialog" role="document">
+					<div class="modal-content">
+					<div class="modal-header">
+						<h5 class="modal-title" id="exampleModalLabel"> <strong> PhotoID: </strong> {{photo.photoID}} </h5>
+						<button type="button" class="close" data-dismiss="modal" aria-label="Close">
+						<span aria-hidden="true">&times;</span>
+						</button>
+					</div>
+					<div class="container">
+					<div id="modal-body-{{photo.photoID}}">
+						...
+					</div>
+					</div>
+					<div class="modal-footer">
+						<button type="button" class="btn btn-dark" data-dismiss="modal">Close</button>
+					</div>
+					</div>
+				</div>
+				</div>
+
+			</div>
+		</div>
+	</div>
+	{% endfor %}
+	</div>
+{% include "footer.html" %}
