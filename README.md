@@ -7,7 +7,8 @@
 ```sql
 SELECT photoID, postingdate, photoBlob, caption, photoPoster
 FROM (SELECT * 
-      FROM Photo P JOIN Follow F ON (P.photoPoster =F.username_followed)         WHERE followstatus = True AND allFollowers = True
+      FROM Photo P JOIN Follow F ON (P.photoPoster =F.username_followed)
+      WHERE followstatus = True AND allFollowers = True
       AND username_follower = %s OR %s IN 
       (SELECT member_username 
       FROM BelongTo WHERE (groupName, owner_username) IN 
