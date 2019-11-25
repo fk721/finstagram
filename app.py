@@ -125,15 +125,22 @@ def home():
         # query = 'SELECT * FROM Photo WHERE photoPoster = %s ORDER BY postingdate DESC'
         # cursor.execute(query, (user))
 
-        query = 'SELECT photoID, postingdate, photoBlob, caption, photoPoster \
-                FROM (SELECT * FROM Photo P JOIN Follow F ON (P.photoPoster = F.username_followed) WHERE followstatus = True AND allFollowers = True \
-                AND username_follower = %s OR ( followstatus = True and %s IN (SELECT member_username FROM BelongTo WHERE (groupName, owner_username) IN (SELECT groupName, groupOwner FROM SharedWith WHERE photoID =  P.photoID)))) \
-                AS T \
+        query = "(SELECT P.photoID, P.postingdate, P.photoBlob, P.caption, P.photoPoster \
+                FROM Photo P JOIN Follow F ON (P.photoPoster = F.username_followed) \
+                WHERE followstatus = True AND allFollowers = True \
+                AND username_follower = %s) \
+                UNION \
+                (SELECT photoID, postingdate, photoBlob, caption, photoPoster \
+                FROM Photo \
+                WHERE photoID IN \
+                (SELECT photoID \
+                FROM BelongTo B JOIN SharedWith S ON ((B.owner_username = S.groupOwner) AND (B.groupName = S.groupName)) \
+                AND member_username = %s)) \
                 UNION \
                 (SELECT photoID, postingdate, photoBlob, caption, photoPoster \
                 FROM Photo \
                 WHERE photoPoster = %s) \
-                ORDER BY postingdate DESC'
+                ORDER BY postingdate DESC"
         
         cursor.execute(query, (user, user, user))
 
