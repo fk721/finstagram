@@ -1,4 +1,4 @@
-// API CALL TO FLASK
+// API CALL TO FLASK TO GET PHOTO INFO
 function getInfo(photoID) {
     $.ajax({
         type: 'POST',
@@ -50,3 +50,30 @@ function getInfo(photoID) {
         }
     });
 };
+
+// API CALL TO FLASK TO PROCESS FOLLOW REQUESTS
+function processFollowRequests() {
+    var toAccept = [];
+    var toDelete = [];
+    $("input:radio.toAccept:checked").each(function () {
+        toAccept.push(this.value);
+    });
+
+    $("input:radio.toDelete:checked").each(function () {
+        toDelete.push(this.value);
+    });
+
+    $.ajax({
+        type: 'POST',
+        url: "/process_requests",
+        data: {toAccept: JSON.stringify(toAccept), toDelete: JSON.stringify(toDelete)},
+        success: function(response) {
+            setTimeout(function(){// wait for 5 secs(2)
+                location.reload(); // then reload the page.(3)
+           }, 1500); 
+        },
+        error: function(error) {
+            console.log(error);
+        }
+    });
+}

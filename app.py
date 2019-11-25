@@ -30,7 +30,6 @@ def convertToBinaryData(filename):
 #Define a route to hello function
 @app.route('/')
 def hello():
-    # return render_template('index.html')
     try:
         return home()
     except:
@@ -40,6 +39,11 @@ def hello():
 @app.route('/login')
 def login():
     return render_template('login.html')
+
+@app.route('/logout')
+def logout():
+    session.pop('username')
+    return redirect('/')
 
 #Define route for register
 @app.route('/register')
@@ -123,7 +127,7 @@ def home():
 
         query = 'SELECT photoID, postingdate, photoBlob, caption, photoPoster \
                 FROM (SELECT * FROM Photo P JOIN Follow F ON (P.photoPoster = F.username_followed) WHERE followstatus = True AND allFollowers = True \
-                AND username_follower = %s OR %s IN (SELECT member_username FROM BelongTo WHERE groupName IN (SELECT groupName FROM SharedWith WHERE photoID =  P.photoID))) \
+                AND username_follower = %s OR ( followstatus = True and %s IN (SELECT member_username FROM BelongTo WHERE (groupName, owner_username) IN (SELECT groupName, groupOwner FROM SharedWith WHERE photoID =  P.photoID)))) \
                 AS T \
                 UNION \
                 (SELECT photoID, postingdate, photoBlob, caption, photoPoster \
@@ -178,6 +182,79 @@ def upload_image():
     else:
         return render_template('login.html')
 
+@app.route('/follow')
+def followSomeone():
+    try:
+        user = session['username']
+        return render_template('follow-someone.html')
+    except:
+        return render_template('login.html')
+
+@app.route("/followUser", methods=["POST"])
+def followUser():
+    if 'username' in session:
+        userToFollow = request.form['userToFollow']
+        if userToFollow == session['username']:
+            message = "You cannot follow yourself"
+        else:
+            cursor = conn.cursor()
+            query = 'SELECT username FROM Person WHERE username = % s'
+            cursor.execute(query, (userToFollow))
+            if (cursor.fetchone() is None):
+                message = "This user does not exist"
+            else:
+                query = 'SELECT * FROM Follow WHERE username_followed = %s AND username_follower = %s'
+                cursor.execute(query, (userToFollow, session['username']))
+                followEntry = cursor.fetchone()
+                if (followEntry is None):
+                    query = 'INSERT INTO Follow (username_followed, username_follower, followstatus) VALUES (%s, %s, %s)'
+                    cursor.execute(query, (userToFollow, session['username'], False))
+                    conn.commit()
+                    message = "Your request has been sent"
+                elif (followEntry['followstatus']):
+                    message = "You already follow this user"
+                else:
+                    message = "You have already sent out this follow request"
+                cursor.close()
+        return render_template("follow-someone.html", message=message)
+    else:
+        return render_template('login.html')
+
+@app.route('/follow-requests')
+def followRequests():
+    try:
+        user = session['username']
+        cursor = conn.cursor()
+        query = 'SELECT username_follower FROM Follow WHERE followstatus = False AND username_followed = %s'
+        cursor.execute(query, (session['username']))
+        requests = cursor.fetchall()
+        cursor.close()
+        return render_template('follow-requests.html', requests=requests, username=user)
+    except:
+        return render_template('login.html')
+
+@app.route('/view-followers')
+def viewFollowers():
+    try:
+        user = session['username']
+
+        cursor = conn.cursor()
+        query = 'SELECT username_follower FROM Follow WHERE followstatus = True AND username_followed = %s'
+        cursor.execute(query, (user))
+        followers = cursor.fetchall()
+        cursor.close()
+
+        cursor = conn.cursor()
+        query = 'SELECT username_followed FROM Follow WHERE followstatus = True AND username_follower = %s'
+        cursor.execute(query, (user))
+        following = cursor.fetchall()
+        cursor.close()
+
+        return render_template('view-followers.html', following=following, followers=followers, username=user)
+    except:
+        return render_template('login.html')
+    
+# API CALL, USING AJAX
 @app.route("/get_info", methods=["POST"])
 def getInfo():
     photoID = request.get_data().decode('utf-8')
@@ -211,12 +288,31 @@ def getInfo():
     print("Tagged Users:",taggedUsers)
     print("Liked Users:",likedUsers)
     return json.dumps({'status':'OK','posterStats':posterStats,'numLikes':numLikes, 'taggedUsers': taggedUsers, 'likedUsers' : likedUsers})
-    
 
-@app.route('/logout')
-def logout():
-    session.pop('username')
-    return redirect('/')
+# API CALL, USING AJAX
+@app.route("/process_requests", methods=["POST"])
+def processRequests():
+    toAccept = json.loads(request.form['toAccept'])
+    toDelete = json.loads(request.form['toDelete'])
+
+    # Accept All Requests
+    if toAccept:
+        cursor = conn.cursor()
+        query = 'UPDATE Follow SET followstatus = True WHERE username_followed = %s AND username_follower IN %s'
+        cursor.execute(query, (session['username'], toAccept))
+        conn.commit()
+        cursor.close()
+
+    # Delete All Requests
+    if toDelete:
+        cursor = conn.cursor()
+        query = 'DELETE FROM Follow WHERE username_followed = %s AND username_follower IN %s'
+        cursor.execute(query, (session['username'], toDelete))
+        conn.commit()
+        cursor.close()
+    return json.dumps({'status:':"OK"})
+
+
         
 app.secret_key = 'some key that you will never guess'
 #Run the app on localhost port 5000

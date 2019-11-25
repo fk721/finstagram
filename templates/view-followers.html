@@ -1,0 +1,64 @@
+{% include "header.html" %}
+{% include "nav.html" %}
+
+<!-- TABLE FOR FOLLOWERS -->
+<div class="container">
+    {% if followers | length == 0 %}
+    <h3 class='mt-2 mb-2'> Sorry, {{username}}, you have 0 followers :( </h3>
+    {% else %}
+    <h3 class='mt-2 mb-2'> Hello {{username}}, here is a list of your followers </h3>
+    {% endif %}
+</div>
+    
+<div class="container mt-10">
+    {% if followers | length > 0 %}
+    <table class="table mt-2">
+        <thead>
+            <tr>
+            <th scope="col">Username</th>
+            </tr>
+    {% endif %}
+    
+    {% for follower in followers %}
+        <tr>
+            <td> {{follower.username_follower}} </td>
+        </tr>
+    {% endfor %}
+    
+    {% if followers | length > 0 %}
+        </tbody>
+    </table>
+    {% endif %}
+</div>
+
+<!-- TABLE FOR FOLLOWING -->
+<div class="container">
+    {% if following | length == 0 %}
+    <h3 class='mt-2 mb-2'>  You are not following anyone </h3>
+    {% else %}
+    <h3 class='mt-2 mb-2'> Here is a list of who you are following </h3>
+    {% endif %}
+</div>
+        
+<div class="container mt-10">
+    {% if following | length > 0 %}
+    <table class="table mt-2">
+        <thead>
+            <tr>
+            <th scope="col">Username</th>
+            </tr>
+    {% endif %}
+    
+    {% for follower in following %}
+        <tr>
+            <td> {{follower.username_followed}} </td>
+        </tr>
+    {% endfor %}
+    
+    {% if following | length > 0 %}
+        </tbody>
+    </table>
+    {% endif %}
+</div>         
+
+{% include "footer.html" %}

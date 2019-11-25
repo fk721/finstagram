@@ -1,0 +1,46 @@
+{% include 'header.html' %}
+{% include 'nav.html' %}
+
+<div class="container">
+    {% if requests | length == 0 %}
+    <h3 class='mt-2 mb-2'> Sorry, {{username}}, you have 0 follow requests :( </h3>
+    {% else %}
+    <h3 class='mt-2 mb-2'> Hello {{username}}, here are your follow requests </h3>
+    {% endif %}
+</div>
+
+<div class="container mt-10">
+    {% if requests | length > 0 %}
+    <table class="table mt-2">
+        <thead>
+            <tr>
+            <th scope="col">Username</th>
+            <th scope="col"> Accept</th>
+            <th scope="col"> Delete </th>
+            </tr>
+    {% endif %}
+    
+    {% for request in requests %}
+        <tr>
+            <td> {{request.username_follower}} </td>
+            <td> 
+                <div class="radio">
+                <input type="radio" class="toAccept" name="{{request.username_follower}}-radio-button" value="{{request.username_follower}}">
+                </div>
+            </td>
+            <td>
+                <div class="radio">
+                <input type="radio" class="toDelete" name="{{request.username_follower}}-radio-button" value="{{request.username_follower}}" checked>
+                </div>
+            </td>
+        </tr>
+    {% endfor %}
+    
+    {% if requests | length > 0 %}
+        </tbody>
+    </table>
+    <button type="button" class="btn btn-dark" onclick="processFollowRequests()"> Submit </button>
+    {% endif %}
+</div>
+
+{% include 'footer.html' %}
