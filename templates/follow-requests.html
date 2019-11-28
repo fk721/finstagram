@@ -11,7 +11,7 @@
 
 <div class="container mt-10">
     {% if requests | length > 0 %}
-    <table class="table mt-2">
+    <table class="table table-bordered mt-2">
         <thead>
             <tr>
             <th scope="col">Username</th>
@@ -25,12 +25,12 @@
             <td> {{request.username_follower}} </td>
             <td> 
                 <div class="radio">
-                <input type="radio" class="toAccept" name="{{request.username_follower}}-radio-button" value="{{request.username_follower}}">
+                <input type="radio" class="toAccept" name="{{request.username_follower}}-radio-button" value="{{request.username_follower}}" checked>
                 </div>
             </td>
             <td>
                 <div class="radio">
-                <input type="radio" class="toDelete" name="{{request.username_follower}}-radio-button" value="{{request.username_follower}}" checked>
+                <input type="radio" class="toDelete" name="{{request.username_follower}}-radio-button" value="{{request.username_follower}}">
                 </div>
             </td>
         </tr>

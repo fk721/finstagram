@@ -3,9 +3,9 @@
 	<div class="container">
 	
 	{% if photos | length == 0 %}
-	<h3 class="mt-5"> Sorry {{username}}, no posts to show :( </h4>
+	<h3 class="mt-2"> Sorry {{username}}, no posts to show :( </h3>
 	{% else %}
-	<h3 class="mt-5"> Welcome, {{username}} </h3>
+	<h3 class="mt-2"> Welcome, {{username}} </h3>
 	{% endif %}
 	
 	{% for photo in photos %}

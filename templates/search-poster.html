@@ -1,0 +1,29 @@
+{% include 'header.html' %}
+{% include 'nav.html' %}
+<!-- UPLOAD FORM -->
+<div class="container">
+        <div class="row justify-content-center align-items-center" style="height:100vh">
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-body">
+                        <h3 class="text-center"> Enter the name of the user</h3>
+                        <form action="/search-poster-process" method="POST">
+
+                            <div class="form-group">
+                                <input type="text" class="form-control" name = "posterUser" placeholder="Username" required/>
+                            </div>
+
+                            <div class="form-group">
+                                <input type="submit" class="form-control" value="Request">
+                            </div>
+                            {% if message %}
+                                <p> <strong> {{message}} </strong></p>
+                            {% endif %}
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- END UPLOAD FORM -->
+{% include 'footer.html' %}

@@ -1,10 +1,11 @@
 {% include "header.html" %}
 {% include "nav.html" %}
 
+<br>
 <!-- TABLE FOR FOLLOWERS -->
 <div class="container">
     {% if followers | length == 0 %}
-    <h3 class='mt-2 mb-2'> Sorry, {{username}}, you have 0 followers :( </h3>
+    <h3 class='mt-2 mb-2'> Sorry {{username}}, you have 0 followers :( </h3>
     {% else %}
     <h3 class='mt-2 mb-2'> Hello {{username}}, here is a list of your followers </h3>
     {% endif %}
@@ -12,16 +13,20 @@
     
 <div class="container mt-10">
     {% if followers | length > 0 %}
-    <table class="table mt-2">
+    <table class="table table-bordered mt-2">
         <thead>
             <tr>
             <th scope="col">Username</th>
+            <th scope="col">First Name</th>
+            <th scope="col">Last Name</th>
             </tr>
     {% endif %}
     
     {% for follower in followers %}
         <tr>
             <td> {{follower.username_follower}} </td>
+            <td> {{follower.firstName}} </td>
+            <td> {{follower.lastName}} </td>
         </tr>
     {% endfor %}
     
@@ -30,6 +35,8 @@
     </table>
     {% endif %}
 </div>
+
+<br>
 
 <!-- TABLE FOR FOLLOWING -->
 <div class="container">
@@ -42,16 +49,20 @@
         
 <div class="container mt-10">
     {% if following | length > 0 %}
-    <table class="table mt-2">
+    <table class="table table-bordered mt-2">
         <thead>
             <tr>
             <th scope="col">Username</th>
+            <th scope="col">First Name</th>
+            <th scope="col">Last Name</th>
             </tr>
     {% endif %}
     
     {% for follower in following %}
         <tr>
             <td> {{follower.username_followed}} </td>
+            <td> {{follower.firstName}} </td>
+            <td> {{follower.lastName}} </td>
         </tr>
     {% endfor %}
     

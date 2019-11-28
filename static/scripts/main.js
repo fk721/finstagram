@@ -77,3 +77,9 @@ function processFollowRequests() {
         }
     });
 }
+
+// DISABLE FORM RESUBMISSION 
+
+// if ( window.history.replaceState ) {
+//     window.history.replaceState( null, null, window.location.href );
+// }

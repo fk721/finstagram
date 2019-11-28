@@ -246,19 +246,121 @@ def viewFollowers():
         user = session['username']
 
         cursor = conn.cursor()
-        query = 'SELECT username_follower FROM Follow WHERE followstatus = True AND username_followed = %s'
+        query = 'SELECT username_follower, firstName, lastName FROM Follow JOIN Person ON (username_follower = username) WHERE followstatus = True AND username_followed = %s'
         cursor.execute(query, (user))
         followers = cursor.fetchall()
         cursor.close()
 
         cursor = conn.cursor()
-        query = 'SELECT username_followed FROM Follow WHERE followstatus = True AND username_follower = %s'
+        query = 'SELECT username_followed, firstName, lastName FROM Follow JOIN Person ON (username_followed = username) WHERE followstatus = True AND username_follower = %s'
         cursor.execute(query, (user))
         following = cursor.fetchall()
         cursor.close()
 
         return render_template('view-followers.html', following=following, followers=followers, username=user)
     except:
+        return render_template('login.html')
+
+
+@app.route('/search-tag')
+def searchTag():
+    try:
+        user = session['username']
+        return render_template('search-tag.html')
+    except:
+        return render_template('login.html')
+
+@app.route("/search-tags-process", methods=["POST"])
+def findSearchTags():
+    if 'username' in session:
+        user = session['username']
+        taggedUser = request.form['taggeduser']
+
+        cursor = conn.cursor()
+        query = 'SELECT username FROM Person WHERE username = % s'
+        cursor.execute(query, (taggedUser))
+        if (cursor.fetchone() is None):
+            message = "This user does not exist"
+            return render_template("search-tag.html", message=message)
+        else:
+            query = "SELECT * FROM \
+                    ((SELECT P.photoID, P.postingdate, P.photoBlob, P.caption, P.photoPoster \
+                    FROM Photo P JOIN Follow F ON (P.photoPoster = F.username_followed) \
+                    WHERE followstatus = True AND allFollowers = True \
+                    AND username_follower = %s) \
+                    UNION \
+                    (SELECT photoID, postingdate, photoBlob, caption, photoPoster \
+                    FROM Photo \
+                    WHERE photoID IN \
+                    (SELECT photoID \
+                    FROM BelongTo B JOIN SharedWith S ON ((B.owner_username = S.groupOwner) AND (B.groupName = S.groupName)) \
+                    AND member_username = %s)) \
+                    UNION \
+                    (SELECT photoID, postingdate, photoBlob, caption, photoPoster \
+                    FROM Photo \
+                    WHERE photoPoster = %s) \
+                    ORDER BY postingdate DESC) AS T \
+                    WHERE T.photoID IN \
+                    (SELECT photoID \
+                    FROM Tagged\
+                    WHERE username = %s AND tagstatus = True)"
+
+            cursor.execute(query, (user, user, user, taggedUser))
+            photos = cursor.fetchall()
+            cursor.close()
+            return render_template("view-photos-by-tag.html", taggedUser=taggedUser, photos=photos)    
+    else:
+        return render_template('login.html')
+
+
+@app.route('/search-poster')
+def searchPoster():
+    try:
+        user = session['username']
+        return render_template('search-poster.html')
+    except:
+        return render_template('login.html')
+
+@app.route("/search-poster-process", methods=["POST"])
+def findSearchPoster():
+    if 'username' in session:
+        user = session['username']
+        posterUser = request.form['posterUser']
+
+        cursor = conn.cursor()
+        query = 'SELECT username FROM Person WHERE username = % s'
+        cursor.execute(query, (posterUser))
+        if (cursor.fetchone() is None):
+            message = "This user does not exist"
+            return render_template("search-poster.html", message=message)
+        else:
+            if user == posterUser:
+                query = "SELECT photoID, postingdate, photoBlob, caption, photoPoster \
+                        FROM Photo \
+                        WHERE photoPoster = %s\
+                        ORDER BY postingdate DESC"
+                cursor.execute(query, (posterUser))
+                photos = cursor.fetchall()
+                cursor.close()
+                return render_template("view-photos-by-poster.html", posterUser=posterUser, photos=photos) 
+            else:
+                query = "(SELECT P.photoID, P.postingdate, P.photoBlob, P.caption, P.photoPoster \
+                        FROM Photo P JOIN Follow F ON (P.photoPoster = F.username_followed) \
+                        WHERE followstatus = True AND allFollowers = True \
+                        AND username_follower = %s AND photoPoster = %s) \
+                        UNION \
+                        (SELECT photoID, postingdate, photoBlob, caption, photoPoster \
+                        FROM Photo \
+                        WHERE photoPoster = %s AND photoID IN \
+                        (SELECT photoID \
+                        FROM BelongTo B JOIN SharedWith S ON ((B.owner_username = S.groupOwner) AND (B.groupName = S.groupName)) \
+                        AND member_username = %s)) \
+                        ORDER BY postingdate DESC"
+                cursor.execute(query, (user, posterUser, posterUser, user))
+                photos = cursor.fetchall()
+                cursor.close()
+                return render_template("view-photos-by-poster.html", posterUser=posterUser, photos=photos)    
+    else:
         return render_template('login.html')
     
 # API CALL, USING AJAX
