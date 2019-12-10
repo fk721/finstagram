@@ -21,6 +21,15 @@
                                 <input type="radio" name="options" id="option2" value="notAllFollowrers"> No </input>
                             </div>
                             
+                            {% if friendGroups | length > 0 %}
+                                <label> Share with the following Friend Groups: </label> <br>
+                                {% for friendGroup in friendGroups %}
+                                    <input type="checkbox" name="friendGroups" value="{{friendGroup.groupName}};{{friendGroup.owner_username}}"> 
+                                    <strong> {{friendGroup.groupName}} </strong> created by <strong> {{friendGroup.owner_username}} </strong>
+                                    </input> <br>
+                                {% endfor %}
+                                <br>
+                            {% endif %}
 
                             <div class="form-group">
                                 <input type="submit" class="form-control" value="Upload">

@@ -154,13 +154,26 @@ def home():
 def upload():
     try:
         user = session['username']
-        return render_template("upload.html")
+        cursor = conn.cursor()
+        query  = "SELECT groupName, owner_username FROM BelongTo WHERE member_username = %s"
+        cursor.execute(query, (user))
+        friendGroups = cursor.fetchall()
+        cursor.close()
+        return render_template("upload.html", friendGroups = friendGroups)
     except:
         return render_template('login.html')
 
 @app.route("/uploadImage", methods=["POST"])
 def upload_image():
     if 'username' in session:
+
+        user = session['username']
+        cursor = conn.cursor()
+        query  = "SELECT groupName, owner_username FROM BelongTo WHERE member_username = %s"
+        cursor.execute(query, (user))
+        friendGroups = cursor.fetchall()
+        cursor.close()
+
         if request.files:
             image_file = request.files.get("imageToUpload", "")
             image_name = image_file.filename
@@ -170,22 +183,37 @@ def upload_image():
             blobData = convertToBinaryData(filepath)
             caption = request.form['caption']
             visible = False
+            groups = request.form.getlist("friendGroups")
+
             if request.form['options'] == 'allFollowers':
                 visible = True
-            
+                    
             # print(blobData, visible, caption, session['username'])
 
             cursor = conn.cursor()
             query = "INSERT INTO Photo (postingdate, photoBlob, allFollowers, caption, photoPoster) VALUES (%s, %s, %s,%s, %s)"
             cursor.execute(query, (time.strftime('%Y-%m-%d %H:%M:%S'), blobData, visible, caption, session['username']))
             conn.commit()
+            photoID = cursor.lastrowid
             cursor.close()
 
+            
+            cursor = conn.cursor()
+            for group in groups:
+                group_data = group.split(";")
+                groupOwner, groupName = group_data[1], group_data[0]
+                query = "INSERT INTO SharedWith (groupOwner, groupName, photoID) VALUES (%s, %s, %s)"
+                cursor.execute(query, (groupOwner, groupName, photoID))
+                conn.commit()
+            cursor.close()
+
+            print(photoID)
+
             message = "Image has been successfully uploaded."
-            return render_template("upload.html", message=message)
+            return render_template("upload.html", message=message, friendGroups=friendGroups)
         else:
             message = "Failed to upload image."
-            return render_template("upload.html", message=message)
+            return render_template("upload.html", message=message, friendGroups=friendGroups)
     else:
         return render_template('login.html')
 
