@@ -188,14 +188,14 @@ def upload_image():
             if request.form['options'] == 'allFollowers':
                 visible = True
                     
-            # print(blobData, visible, caption, session['username'])
-
             cursor = conn.cursor()
             query = "INSERT INTO Photo (postingdate, photoBlob, allFollowers, caption, photoPoster) VALUES (%s, %s, %s,%s, %s)"
             cursor.execute(query, (time.strftime('%Y-%m-%d %H:%M:%S'), blobData, visible, caption, session['username']))
             conn.commit()
             photoID = cursor.lastrowid
             cursor.close()
+
+            os.remove(filepath)
 
             
             cursor = conn.cursor()
